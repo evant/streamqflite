@@ -1,8 +1,11 @@
 name: streamqflite
 description: reactive stream wrapper around sqflite inspired by sqlbrite
 version: 0.1.0
-author: Evan Tatarka
+author: Evan Tatarka <evan@tatarka.me>
 homepage: https://github.com/evant/streamqflite
+
+environment:
+  sdk: ">=2.0.0-dev.35 <2.0.0"
 
 dependencies:
   flutter:
