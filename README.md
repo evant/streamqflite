@@ -32,13 +32,16 @@ var streamDb = StreamDatabase(db);
 You can then listen to a query
 
 ```dart
-var singleQuery = streamDb.createQuery("MyTable", where: 'id = ?', whereArgs: [id])
+// Emits a single row, doesn't emit if the row dosen't exist.
+Stream<MyEntry> singleQuery = streamDb.createQuery("MyTable", where: 'id = ?', whereArgs: [id])
     .mapToOne((row) => MyEntry(row));
 
-var singleOrQuery = streamDb.createQuery("MyTable", where: 'id = ?', whereArgs: [id])
+// Emits a single row, or the given default value if the row doesn't exist.
+Stream<MyEntry> singleOrDefaultQuery = streamDb.createQuery("MyTable", where: 'id = ?', whereArgs: [id])
     .mapToOneOrDefault((row) => MyEntry(row), MyEntry.empty());
 
-var listQuery = streamDb.createQuery("MyTable", where: 'name LIKE ?', whereArgs: [query])
+// Emits a list of rows.
+Stream<List<MyEntry>> listQuery = streamDb.createQuery("MyTable", where: 'name LIKE ?', whereArgs: [query])
     .mapToList((row) => MyEntry(row));
 
 var flexibleQuery = streamDb.createQuery("MyTable", where: 'name LIKE ?', whereArgs: [query])
