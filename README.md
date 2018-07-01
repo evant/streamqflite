@@ -1,5 +1,7 @@
 # streamqflite
 
+[![Pub](https://img.shields.io/pub/v/streamqflite.svg)]()
+
 A reactive stream wrapper around [sqflite](https://github.com/tekartik/sqflite) inspired by
 [sqlbrite](https://github.com/square/sqlbrite).
 
