@@ -50,49 +50,49 @@ void main() {
     });
 
     test("triggers query again on insert", () async {
-      when(db.insert("Table", <String, Object>{})).thenReturn(Future.value(0));
+      when(db.insert("Table", <String, Object>{})).thenAnswer((_) => Future.value(0));
       var stream = streamDb.createQuery("Table");
       await streamDb.insert("Table", {});
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on rawInsert", () async {
-      when(db.insert("Table", <String, Object>{})).thenReturn(Future.value(0));
+      when(db.insert("Table", <String, Object>{})).thenAnswer((_) => Future.value(0));
       var stream = streamDb.createQuery("Table");
       await streamDb.rawInsert(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on delete", () async {
-      when(db.delete("Table")).thenReturn(Future.value(1));
+      when(db.delete("Table")).thenAnswer((_) => Future.value(1));
       var stream = streamDb.createQuery("Table");
       await streamDb.delete("Table");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on rawDelete", () async {
-      when(db.rawDelete("")).thenReturn(Future.value(1));
+      when(db.rawDelete("")).thenAnswer((_) => Future.value(1));
       var stream = streamDb.createQuery("Table");
       await streamDb.rawDelete(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on update", () async {
-      when(db.update("Table", <String, Object>{})).thenReturn(Future.value(1));
+      when(db.update("Table", <String, Object>{})).thenAnswer((_) => Future.value(1));
       var stream = streamDb.createQuery("Table");
       await streamDb.update("Table", {});
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on rawUpdate", () async {
-      when(db.rawUpdate("")).thenReturn(Future.value(1));
+      when(db.rawUpdate("")).thenAnswer((_) => Future.value(1));
       var stream = streamDb.createQuery("Table");
       await streamDb.rawUpdate(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on executeAndTrigger", () async {
-      when(db.execute("")).thenReturn(Future.value(0));
+      when(db.execute("")).thenAnswer((_) => Future<int>.value(0));
       var stream = streamDb.createQuery("Table");
       await streamDb.executeAndTrigger(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
@@ -119,49 +119,49 @@ void main() {
     });
 
     test("triggers query again on insert", () async {
-      when(db.insert("Table", <String, Object>{})).thenReturn(Future.value(0));
+      when(db.insert("Table", <String, Object>{})).thenAnswer((_) => Future.value(0));
       var stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.insert("Table", {});
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on rawInsert", () async {
-      when(db.insert("Table", <String, Object>{})).thenReturn(Future.value(0));
+      when(db.insert("Table", <String, Object>{})).thenAnswer((_) => Future.value(0));
       var stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.rawInsert(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on delete", () async {
-      when(db.delete("Table")).thenReturn(Future.value(1));
+      when(db.delete("Table")).thenAnswer((_) => Future.value(1));
       var stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.delete("Table");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on rawDelete", () async {
-      when(db.rawDelete("")).thenReturn(Future.value(1));
+      when(db.rawDelete("")).thenAnswer((_) => Future.value(1));
       var stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.rawDelete(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on update", () async {
-      when(db.update("Table", <String, Object>{})).thenReturn(Future.value(1));
+      when(db.update("Table", <String, Object>{})).thenAnswer((_) => Future.value(1));
       var stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.update("Table", {});
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on rawUpdate", () async {
-      when(db.rawUpdate("")).thenReturn(Future.value(1));
+      when(db.rawUpdate("")).thenAnswer((_) => Future.value(1));
       var stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.rawUpdate(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on executeAndTrigger", () async {
-      when(db.execute("")).thenReturn(Future.value(0));
+      when(db.execute("")).thenAnswer((_) => Future<int>.value(0));
       var stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.executeAndTrigger(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
@@ -230,12 +230,12 @@ void main() {
     test("delegates to db delete", () async {
       when(db.delete(
               // ignore: argument_type_not_assignable
-              typed(any),
+              any,
               // ignore: argument_type_not_assignable
-              where: typed(any, named: "where"),
+              where: anyNamed("where"),
               // ignore: argument_type_not_assignable
-              whereArgs: typed(any, named: "whereArgs")))
-          .thenReturn(Future.value(1));
+              whereArgs: anyNamed("whereArgs")))
+          .thenAnswer((_) => Future.value(1));
       await streamDb.delete("Table", where: "where", whereArgs: ["whereArg"]);
       verify(
           db.delete("Table", where: "where", whereArgs: <dynamic>["whereArg"]));
@@ -246,10 +246,10 @@ void main() {
     test("delegates to db rawDelete", () async {
       when(db.rawDelete(
               // ignore: argument_type_not_assignable
-              typed(any),
+              any,
               // ignore: argument_type_not_assignable
-              typed(any)))
-          .thenReturn(Future.value(1));
+              any))
+          .thenAnswer((_) => Future.value(1));
       await streamDb.rawDelete(["Table"], "sql", ["arg"]);
       verify(db.rawDelete("sql", <dynamic>["arg"]));
     });
@@ -259,16 +259,16 @@ void main() {
     test("delegates to db update", () async {
       when(db.update(
               // ignore: argument_type_not_assignable
-              typed(any),
+              any,
               // ignore: argument_type_not_assignable
-              typed(any),
+              any,
               // ignore: argument_type_not_assignable
-              where: typed(any, named: "where"),
+              where: anyNamed("where"),
               // ignore: argument_type_not_assignable
-              whereArgs: typed(any, named: "whereArgs"),
+              whereArgs: anyNamed("whereArgs"),
               // ignore: argument_type_not_assignable
-              conflictAlgorithm: typed(any, named: "conflictAlgorithm")))
-          .thenReturn(Future.value(1));
+              conflictAlgorithm: anyNamed("conflictAlgorithm")))
+          .thenAnswer((_) => Future.value(1));
       await streamDb.update("Table", {},
           where: "where",
           whereArgs: ["whereArg"],
@@ -284,10 +284,10 @@ void main() {
     test("delegates to db rawUpdate", () async {
       when(db.rawUpdate(
               // ignore: argument_type_not_assignable
-              typed(any),
+              any,
               // ignore: argument_type_not_assignable
-              typed(any)))
-          .thenReturn(Future.value(1));
+              any))
+          .thenAnswer((_) => Future.value(1));
       await streamDb.rawUpdate(["Table"], "sql", ["arg"]);
       verify(db.rawUpdate("sql", <dynamic>["arg"]));
     });
@@ -304,14 +304,15 @@ void main() {
     test("triggers query again after transaction completes", () async {
       var transaction = MockTransaction();
       when(transaction.insert("Table", <String, Object>{}))
-          .thenReturn(Future.value(0));
+          .thenAnswer((_) => Future.value(0));
       when(db.transaction<dynamic>(
           // ignore: argument_type_not_assignable
-          typed(any),
+          any,
           // ignore: argument_type_not_assignable
-          exclusive: typed(any, named: "exclusive"))).thenAnswer((invocation) {
+          exclusive: anyNamed("exclusive"))).thenAnswer((invocation) {
         Function f = invocation.positionalArguments[0];
-        return f(transaction);
+        Future<int> result = f(transaction);
+        return result;
       });
       var stream = streamDb.createQuery("Table");
       await streamDb.transaction((transaction) {
