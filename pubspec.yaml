@@ -5,19 +5,19 @@ author: Evan Tatarka <evan@tatarka.me>
 homepage: https://github.com/evant/streamqflite
 
 environment:
-  sdk: ">=2.0.0-dev.35 <2.0.0"
+  sdk: ">=2.0.0-dev.61.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  sqflite: ^0.8.9
+  sqflite: ^0.12.2+1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_driver:
     sdk: flutter
-  mockito: ^2.2.3
+  mockito: ^3.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
