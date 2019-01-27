@@ -2,7 +2,6 @@ library sqlflight;
 
 import 'dart:async';
 
-import 'package:meta/meta.dart';
 import 'package:sqflite/sqflite.dart';
 
 /// Represents a query to be executed, invoking it will actually execute the
@@ -17,8 +16,7 @@ abstract class StreamDatabaseExecutor {
 
   StreamDatabaseExecutor(DatabaseExecutor db) : _db = db;
 
-  @protected
-  void sendTableTrigger(Iterable<String> tables);
+  void _sendTableTrigger(Iterable<String> tables);
 
   /// Execute an SQL query with no return value.
   /// No notifications will be sent to queries if [sql] affects the data of the
@@ -32,7 +30,7 @@ abstract class StreamDatabaseExecutor {
   Future<void> executeAndTrigger(Iterable<String> tables, String sql,
       [List<dynamic> arguments]) async {
     await _db.execute(sql, arguments);
-    sendTableTrigger(tables);
+    _sendTableTrigger(tables);
   }
 
   /// Execute a raw SQL INSERT query
@@ -44,7 +42,7 @@ abstract class StreamDatabaseExecutor {
       [List<dynamic> arguments]) async {
     var rowId = await _db.rawInsert(sql, arguments);
     if (rowId != -1) {
-      sendTableTrigger(tables);
+      _sendTableTrigger(tables);
     }
     return rowId;
   }
@@ -58,7 +56,7 @@ abstract class StreamDatabaseExecutor {
     var rowId =
         await _db.insert(table, values, conflictAlgorithm: conflictAlgorithm);
     if (rowId != -1) {
-      sendTableTrigger([table]);
+      _sendTableTrigger([table]);
     }
     return rowId;
   }
@@ -129,7 +127,7 @@ abstract class StreamDatabaseExecutor {
       [List<Object> args]) async {
     var rows = await _db.rawUpdate(sql, args);
     if (rows > 0) {
-      sendTableTrigger(tables);
+      _sendTableTrigger(tables);
     }
     return rows;
   }
@@ -159,7 +157,7 @@ abstract class StreamDatabaseExecutor {
         whereArgs: whereArgs,
         conflictAlgorithm: conflictAlgorithm);
     if (rows > 0) {
-      sendTableTrigger([table]);
+      _sendTableTrigger([table]);
     }
     return rows;
   }
@@ -174,7 +172,7 @@ abstract class StreamDatabaseExecutor {
       [List<Object> args]) async {
     var rows = await _db.rawDelete(sql, args);
     if (rows > 0) {
-      sendTableTrigger(tables);
+      _sendTableTrigger(tables);
     }
     return rows;
   }
@@ -202,7 +200,7 @@ abstract class StreamDatabaseExecutor {
       {String where, List<Object> whereArgs}) async {
     var rows = await _db.delete(table, where: where, whereArgs: whereArgs);
     if (rows > 0) {
-      sendTableTrigger([table]);
+      _sendTableTrigger([table]);
     }
     return rows;
   }
@@ -262,7 +260,7 @@ class StreamTransaction extends StreamDatabaseExecutor {
         super(transaction);
 
   @override
-  sendTableTrigger(Iterable<String> tables) {
+  _sendTableTrigger(Iterable<String> tables) {
     _notify.addAll(tables);
   }
 }
@@ -286,7 +284,7 @@ class StreamDatabase extends StreamDatabaseExecutor {
     var result = await _db.transaction(
         (t) => action(StreamTransaction(t, notify)),
         exclusive: exclusive);
-    sendTableTrigger(notify);
+    _sendTableTrigger(notify);
     return result;
   }
 
@@ -294,7 +292,7 @@ class StreamDatabase extends StreamDatabaseExecutor {
   bool get isOpen => _db.isOpen;
 
   @override
-  void sendTableTrigger(Iterable<String> tables) {
+  void _sendTableTrigger(Iterable<String> tables) {
     triggers.add(tables.toSet());
   }
 
@@ -402,7 +400,7 @@ class StreamBatch {
         exclusive: exclusive,
         noResult: noResult,
         continueOnError: continueOnError);
-    _executor.sendTableTrigger(_notify);
+    _executor._sendTableTrigger(_notify);
     return result;
   }
 
