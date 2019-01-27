@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:streamqflite/collector.dart';
 
 /// Represents a query to be executed, invoking it will actually execute the
 /// query and returns a [Future] of the result.
@@ -229,6 +230,8 @@ class QueryStream extends Stream<LazyQuery> {
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
+  /// Maps to a single result. If no results are returned then nothing is
+  /// emitted.
   Stream<T> mapToOne<T>(T mapper(Map<String, dynamic> row)) {
     return _source
         .asyncMap((query) => query())
@@ -236,6 +239,8 @@ class QueryStream extends Stream<LazyQuery> {
         .map((rows) => mapper(rows.first));
   }
 
+  /// Maps to a single result. If no results are returned then the [defaultValue]
+  /// is emitted.
   Stream<T> mapToOneOrDefault<T>(
       T mapper(Map<String, dynamic> row), T defaultValue) {
     return _source
@@ -243,13 +248,21 @@ class QueryStream extends Stream<LazyQuery> {
         .map((rows) => rows.isNotEmpty ? mapper(rows.first) : defaultValue);
   }
 
+  /// Maps to a list of results.
   Stream<List<T>> mapToList<T>(T mapper(Map<String, dynamic> row)) {
+    return mapTo(ListCollector(), mapper);
+  }
+
+  /// Maps to a collection created with [collector].
+  /// See [Collector].
+  Stream<R> mapTo<T, A, R>(
+      Collector<T, A, R> collector, T mapper(Map<String, dynamic> row)) {
     return _source.asyncMap((query) => query()).map((rows) {
-      var result = List<T>(rows.length);
+      final accumulator = collector.supply(rows.length);
       for (int i = 0; i < rows.length; i++) {
-        result[i] = mapper(rows[i]);
+        collector.add(accumulator, i, mapper(rows[i]));
       }
-      return result;
+      return collector.finish(accumulator);
     });
   }
 }
