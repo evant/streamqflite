@@ -206,6 +206,15 @@ abstract class StreamDatabaseExecutor {
     }
     return rows;
   }
+
+  /// Creates a batch, used for performing multiple operation
+  /// in a single atomic operation.
+  ///
+  /// a batch can be commited using [StreamBatch.commit]
+  ///
+  /// If the batch was created in a transaction, it will be commited
+  /// when the transaction is done
+  StreamBatch batch() => StreamBatch(this);
 }
 
 class QueryStream extends Stream<LazyQuery> {
@@ -275,7 +284,7 @@ class StreamDatabase extends StreamDatabaseExecutor {
       {bool exclusive}) async {
     var notify = Set<String>();
     var result = await _db.transaction(
-            (t) => action(StreamTransaction(t, notify)),
+        (t) => action(StreamTransaction(t, notify)),
         exclusive: exclusive);
     sendTableTrigger(notify);
     return result;
@@ -300,7 +309,7 @@ class StreamDatabase extends StreamDatabaseExecutor {
   ///
   /// @see [rawQuery]
   QueryStream createRawQuery(Iterable<String> tables, String sql,
-      [List<Object> arguments = const <Object>[]]) =>
+          [List<Object> arguments = const <Object>[]]) =>
       _createQuery(tables, () => _db.rawQuery(sql, arguments));
 
   /// Creates a [Stream] that will notify listeners with a [LazyQuery] for
@@ -311,18 +320,18 @@ class StreamDatabase extends StreamDatabaseExecutor {
   ///
   /// @see [query]
   QueryStream createQuery(String table,
-      {bool distinct,
-        List<String> columns,
-        String where,
-        List<Object> whereArgs,
-        String groupBy,
-        String having,
-        String orderBy,
-        int limit,
-        int offset}) =>
+          {bool distinct,
+          List<String> columns,
+          String where,
+          List<Object> whereArgs,
+          String groupBy,
+          String having,
+          String orderBy,
+          int limit,
+          int offset}) =>
       _createQuery(
           [table],
-              () => _db.query(table,
+          () => _db.query(table,
               distinct: distinct,
               columns: columns,
               where: where,
@@ -336,13 +345,13 @@ class StreamDatabase extends StreamDatabaseExecutor {
   QueryStream _createQuery(Iterable<String> tables, LazyQuery query) {
     return QueryStream(triggers.stream
         .where((strings) {
-      for (var table in tables) {
-        if (strings.contains(table)) {
-          return true;
-        }
-      }
-      return false;
-    })
+          for (var table in tables) {
+            if (strings.contains(table)) {
+              return true;
+            }
+          }
+          return false;
+        })
         .map((strings) => query)
         .transform(_StartWith(query)));
   }
@@ -359,5 +368,127 @@ class _StartWith<T> extends StreamTransformerBase<T, T> {
     controller.add(value);
     controller.addStream(stream).whenComplete(() => controller.close());
     return controller.stream;
+  }
+}
+
+///
+/// A batch is used to perform multiple operation as a single atomic unit.
+/// A Batch object can be acquired by calling [StreamDatabase.batch]. It provides
+/// methods for adding operation. None of the operation will be
+/// executed (or visible locally) until commit() is called.
+///
+class StreamBatch {
+  final StreamDatabaseExecutor _executor;
+  final Set<String> _notify = Set();
+  Batch _batch;
+
+  StreamBatch(StreamDatabaseExecutor executor) : _executor = executor {
+    _batch = executor._db.batch();
+  }
+
+  /// Commits all of the operations in this batch as a single atomic unit
+  /// The result is a list of the result of each operation in the same order
+  /// if [noResult] is true, the result list is empty (i.e. the id inserted
+  /// the count of item changed is not returned.
+  ///
+  /// The batch is stopped if any operation failed
+  /// If [continueOnError] is true, all the operations in the batch are executed
+  /// and the failure are ignored (i.e. the result for the given operation will
+  /// be a DatabaseException)
+  ///
+  Future<List<dynamic>> commit(
+      {bool exclusive, bool noResult, bool continueOnError}) async {
+    final result = await _batch.commit(
+        exclusive: exclusive,
+        noResult: noResult,
+        continueOnError: continueOnError);
+    _executor.sendTableTrigger(_notify);
+    return result;
+  }
+
+  /// See [StreamDatabase.rawInsert]
+  void rawInsert(Iterable<String> tables, String sql,
+      [List<dynamic> arguments]) {
+    _batch.rawInsert(sql, arguments);
+    _notify.addAll(tables);
+  }
+
+  /// See [StreamDatabase.insert]
+  void insert(String table, Map<String, dynamic> values,
+      {String nullColumnHack, ConflictAlgorithm conflictAlgorithm}) {
+    _batch.insert(table, values,
+        nullColumnHack: nullColumnHack, conflictAlgorithm: conflictAlgorithm);
+    _notify.add(table);
+  }
+
+  /// See [StreamDatabase.rawUpdate]
+  void rawUpdate(Iterable<String> tables, String sql,
+      [List<dynamic> arguments]) {
+    _batch.rawUpdate(sql, arguments);
+    _notify.addAll(tables);
+  }
+
+  /// See [StreamDatabase.update]
+  void update(String table, Map<String, dynamic> values,
+      {String where,
+      List<dynamic> whereArgs,
+      ConflictAlgorithm conflictAlgorithm}) {
+    _batch.update(table, values,
+        where: where,
+        whereArgs: whereArgs,
+        conflictAlgorithm: conflictAlgorithm);
+    _notify.add(table);
+  }
+
+  /// See [StreamDatabase.rawDelete]
+  void rawDelete(Iterable<String> tables, String sql,
+      [List<dynamic> arguments]) {
+    _batch.rawDelete(sql, arguments);
+    _notify.addAll(tables);
+  }
+
+  /// See [StreamDatabase.delete]
+  void delete(String table, {String where, List<dynamic> whereArgs}) {
+    _batch.delete(table, where: where, whereArgs: whereArgs);
+    _notify.add(table);
+  }
+
+  /// See [StreamDatabase.execute];
+  void execute(String sql, [List<dynamic> arguments]) {
+    _batch.execute(sql, arguments);
+  }
+
+  /// See [StreamDatabase.executeAndTrigger];
+  void executeAndTrigger(Iterable<String> tables, String sql,
+      [List<dynamic> arguments]) {
+    _batch.execute(sql, arguments);
+    _notify.addAll(tables);
+  }
+
+  /// See [StreamDatabase.query];
+  void query(String table,
+      {bool distinct,
+      List<String> columns,
+      String where,
+      List<dynamic> whereArgs,
+      String groupBy,
+      String having,
+      String orderBy,
+      int limit,
+      int offset}) {
+    _batch.query(table,
+        columns: columns,
+        where: where,
+        whereArgs: whereArgs,
+        groupBy: groupBy,
+        having: having,
+        orderBy: orderBy,
+        limit: limit,
+        offset: offset);
+  }
+
+  /// See [StreamDatabase.query];
+  void rawQuery(String sql, [List<dynamic> arguments]) {
+    _batch.rawQuery(sql, arguments);
   }
 }

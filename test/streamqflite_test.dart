@@ -17,7 +17,7 @@ void main() {
 
   group("createQuery", () {
     test("delegates to db query", () async {
-      var stream = streamDb.createQuery(
+      final stream = streamDb.createQuery(
         "Table",
         distinct: true,
         columns: ["column"],
@@ -45,14 +45,14 @@ void main() {
     });
 
     test("triggers intial query", () async {
-      var stream = streamDb.createQuery("Table");
+      final stream = streamDb.createQuery("Table");
       expect(stream, emitsInOrder(<Matcher>[anything]));
     });
 
     test("triggers query again on insert", () async {
       when(db.insert("Table", <String, Object>{}))
           .thenAnswer((_) => Future.value(0));
-      var stream = streamDb.createQuery("Table");
+      final stream = streamDb.createQuery("Table");
       await streamDb.insert("Table", <String, Object>{});
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
@@ -60,21 +60,21 @@ void main() {
     test("triggers query again on rawInsert", () async {
       when(db.insert("Table", <String, Object>{}))
           .thenAnswer((_) => Future.value(0));
-      var stream = streamDb.createQuery("Table");
+      final stream = streamDb.createQuery("Table");
       await streamDb.rawInsert(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on delete", () async {
       when(db.delete("Table")).thenAnswer((_) => Future.value(1));
-      var stream = streamDb.createQuery("Table");
+      final stream = streamDb.createQuery("Table");
       await streamDb.delete("Table");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on rawDelete", () async {
       when(db.rawDelete("")).thenAnswer((_) => Future.value(1));
-      var stream = streamDb.createQuery("Table");
+      final stream = streamDb.createQuery("Table");
       await streamDb.rawDelete(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
@@ -82,21 +82,21 @@ void main() {
     test("triggers query again on update", () async {
       when(db.update("Table", <String, Object>{}))
           .thenAnswer((_) => Future.value(1));
-      var stream = streamDb.createQuery("Table");
+      final stream = streamDb.createQuery("Table");
       await streamDb.update("Table", {});
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on rawUpdate", () async {
       when(db.rawUpdate("")).thenAnswer((_) => Future.value(1));
-      var stream = streamDb.createQuery("Table");
+      final stream = streamDb.createQuery("Table");
       await streamDb.rawUpdate(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on executeAndTrigger", () async {
       when(db.execute("")).thenAnswer((_) => Future<int>.value(0));
-      var stream = streamDb.createQuery("Table");
+      final stream = streamDb.createQuery("Table");
       await streamDb.executeAndTrigger(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
@@ -104,7 +104,7 @@ void main() {
 
   group("createRawQuery", () {
     test("delegates to db rawQuery", () async {
-      var stream = streamDb.createRawQuery(
+      final stream = streamDb.createRawQuery(
         ["Table"],
         "sql",
         ["whereArg"],
@@ -117,14 +117,14 @@ void main() {
     });
 
     test("triggers intial query", () async {
-      var stream = streamDb.createRawQuery(["Table"], "");
+      final stream = streamDb.createRawQuery(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything]));
     });
 
     test("triggers query again on insert", () async {
       when(db.insert("Table", <String, Object>{}))
           .thenAnswer((_) => Future.value(0));
-      var stream = streamDb.createRawQuery(["Table"], "");
+      final stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.insert("Table", <String, Object>{});
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
@@ -132,21 +132,21 @@ void main() {
     test("triggers query again on rawInsert", () async {
       when(db.insert("Table", <String, Object>{}))
           .thenAnswer((_) => Future.value(0));
-      var stream = streamDb.createRawQuery(["Table"], "");
+      final stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.rawInsert(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on delete", () async {
       when(db.delete("Table")).thenAnswer((_) => Future.value(1));
-      var stream = streamDb.createRawQuery(["Table"], "");
+      final stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.delete("Table");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on rawDelete", () async {
       when(db.rawDelete("")).thenAnswer((_) => Future.value(1));
-      var stream = streamDb.createRawQuery(["Table"], "");
+      final stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.rawDelete(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
@@ -154,21 +154,21 @@ void main() {
     test("triggers query again on update", () async {
       when(db.update("Table", <String, Object>{}))
           .thenAnswer((_) => Future.value(1));
-      var stream = streamDb.createRawQuery(["Table"], "");
+      final stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.update("Table", {});
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on rawUpdate", () async {
       when(db.rawUpdate("")).thenAnswer((_) => Future.value(1));
-      var stream = streamDb.createRawQuery(["Table"], "");
+      final stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.rawUpdate(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
 
     test("triggers query again on executeAndTrigger", () async {
       when(db.execute("")).thenAnswer((_) => Future<int>.value(0));
-      var stream = streamDb.createRawQuery(["Table"], "");
+      final stream = streamDb.createRawQuery(["Table"], "");
       await streamDb.executeAndTrigger(["Table"], "");
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
@@ -308,7 +308,7 @@ void main() {
 
   group("transaction", () {
     test("triggers query again after transaction completes", () async {
-      var transaction = MockTransaction();
+      final transaction = MockTransaction();
       when(transaction.insert("Table", <String, Object>{}))
           .thenAnswer((_) => Future.value(0));
       when(db.transaction<dynamic>(
@@ -321,10 +321,25 @@ void main() {
         Future<int> result = f(transaction) as Future<int>;
         return result;
       });
-      var stream = streamDb.createQuery("Table");
+      final stream = streamDb.createQuery("Table");
       await streamDb.transaction((transaction) {
         return transaction.insert("Table", <String, Object>{});
       });
+      expect(stream, emitsInOrder(<Matcher>[anything, anything]));
+    });
+  });
+
+  group("batch", () {
+    test("trigger query again after batch is commited", () async {
+      final batch = MockBatch();
+      when(batch.insert("Table", <String, Object>{}))
+          .thenAnswer((_) => Future.value(0));
+      when(db.batch()).thenAnswer((_) => batch);
+      final stream = streamDb.createQuery("Table");
+      final streamBatch = streamDb.batch();
+      streamBatch.insert("Table", <String, Object>{});
+      await streamBatch.commit();
+
       expect(stream, emitsInOrder(<Matcher>[anything, anything]));
     });
   });
@@ -333,3 +348,5 @@ void main() {
 class MockDatabase extends Mock implements Database {}
 
 class MockTransaction extends Mock implements Transaction {}
+
+class MockBatch extends Mock implements Batch {}
