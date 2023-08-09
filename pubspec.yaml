@@ -1,23 +1,23 @@
 name: streamqflite
 description: reactive stream wrapper around sqflite inspired by sqlbrite
-version: 1.0.0
+version: 2.2.0
 author: Evan Tatarka <evan@tatarka.me>
 homepage: https://github.com/evant/streamqflite
 
 environment:
-  sdk: ">=2.0.0-dev.61.0 <3.0.0"
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  sqflite: ^2.1.0
+  sqflite: ^2.3.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_driver:
     sdk: flutter
-  mockito: ^3.0.1
+  mockito: ^5.4.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec

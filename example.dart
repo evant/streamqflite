@@ -1,3 +1,4 @@
+/*
 // Emits a single row, doesn't emit if the row dosen't exist.
 Stream<MyEntry> singleQuery = streamDb.createQuery("MyTable", where: 'id = ?', whereArgs: [id])
     .mapToOne((row) => MyEntry(row));
@@ -22,3 +23,4 @@ var flexibleQuery = streamDb.createQuery("MyTable", where: 'name LIKE ?', whereA
         // Do something with all the rows.
         return ...;
     });
+*/
