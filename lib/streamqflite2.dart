@@ -1,3 +1,4 @@
+/*
 library sqlflight;
 
 import 'dart:async';
@@ -54,7 +55,7 @@ abstract class StreamDatabaseExecutor {
   Future<int> insert(String table, Map<String, dynamic> values,
       {String? nullColumnHack, ConflictAlgorithm? conflictAlgorithm}) async {
     var rowId =
-    await _db.insert(table, values, conflictAlgorithm: conflictAlgorithm);
+        await _db.insert(table, values, conflictAlgorithm: conflictAlgorithm);
     if (rowId != -1) {
       _sendTableTrigger([table]);
     }
@@ -65,7 +66,7 @@ abstract class StreamDatabaseExecutor {
   ///
   /// @return A list of rows that were found.
   Future<List<Map<String, dynamic>>> rawQuery(String sql,
-      [List<dynamic>? arguments]) =>
+          [List<dynamic>? arguments]) =>
       _db.rawQuery(sql, arguments);
 
   /// Helper to query a table.
@@ -98,14 +99,14 @@ abstract class StreamDatabaseExecutor {
   ///
   Future<List<Map<String, dynamic>>> query(String table,
       {bool? distinct,
-        List<String>? columns,
-        String? where,
-        List<Object>? whereArgs,
-        String? groupBy,
-        String? having,
-        String? orderBy,
-        int? limit,
-        int? offset}) {
+      List<String>? columns,
+      String? where,
+      List<Object>? whereArgs,
+      String? groupBy,
+      String? having,
+      String? orderBy,
+      int? limit,
+      int? offset}) {
     return _db.query(table,
         distinct: distinct,
         columns: columns,
@@ -150,8 +151,8 @@ abstract class StreamDatabaseExecutor {
   /// executed.
   Future<int> update(String table, Map<String, Object> values,
       {String? where,
-        List<Object>? whereArgs,
-        ConflictAlgorithm? conflictAlgorithm}) async {
+      List<Object>? whereArgs,
+      ConflictAlgorithm? conflictAlgorithm}) async {
     var rows = await _db.update(table, values,
         where: where,
         whereArgs: whereArgs,
@@ -223,8 +224,12 @@ class QueryStream extends Stream<LazyQuery> {
   @override
   StreamSubscription<LazyQuery> listen(void Function(LazyQuery event)? onData,
       {Function? onError, void Function()? onDone, bool? cancelOnError}) {
-    return _source.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+    return _source.listen(
+        onData,
+        onError: onError,
+        onDone: onDone,
+        cancelOnError: cancelOnError
+    );
   }
 
   Stream<T> mapToOne<T>(T mapper(Map<String, dynamic> row)) {
@@ -243,8 +248,7 @@ class QueryStream extends Stream<LazyQuery> {
 
   Stream<List<T>> mapToList<T>(T mapper(Map<String, dynamic> row)) {
     return _source.asyncMap((query) => query()).map((rows) {
-      //var result = List<T>(rows.length);
-      List<T> result = [];
+      var result = List<T>.filled(rows.length, T as T, growable: false);//List<T>(rows.length);
       for (int i = 0; i < rows.length; i++) {
         result[i] = mapper(rows[i]);
       }
@@ -283,7 +287,7 @@ class StreamDatabase extends StreamDatabaseExecutor {
       {bool? exclusive}) async {
     var notify = Set<String>();
     var result = await _db.transaction(
-            (t) => action(StreamTransaction(t, notify)),
+        (t) => action(StreamTransaction(t, notify)),
         exclusive: exclusive);
     _sendTableTrigger(notify);
     return result;
@@ -308,7 +312,7 @@ class StreamDatabase extends StreamDatabaseExecutor {
   ///
   /// @see [rawQuery]
   QueryStream createRawQuery(Iterable<String> tables, String sql,
-      [List<Object> arguments = const <Object>[]]) =>
+          [List<Object> arguments = const <Object>[]]) =>
       _createQuery(tables, () => _db.rawQuery(sql, arguments));
 
   /// Creates a [Stream] that will notify listeners with a [LazyQuery] for
@@ -319,18 +323,18 @@ class StreamDatabase extends StreamDatabaseExecutor {
   ///
   /// @see [query]
   QueryStream createQuery(String table,
-      {bool? distinct,
-        List<String>? columns,
-        String? where,
-        List<Object>? whereArgs,
-        String? groupBy,
-        String? having,
-        String? orderBy,
-        int? limit,
-        int? offset}) =>
+          {bool? distinct,
+          List<String>? columns,
+          String? where,
+          List<Object>? whereArgs,
+          String? groupBy,
+          String? having,
+          String? orderBy,
+          int? limit,
+          int? offset}) =>
       _createQuery(
           [table],
-              () => _db.query(table,
+          () => _db.query(table,
               distinct: distinct,
               columns: columns,
               where: where,
@@ -344,13 +348,13 @@ class StreamDatabase extends StreamDatabaseExecutor {
   QueryStream _createQuery(Iterable<String> tables, LazyQuery query) {
     return QueryStream(triggers.stream
         .where((strings) {
-      for (var table in tables) {
-        if (strings.contains(table)) {
-          return true;
-        }
-      }
-      return false;
-    })
+          for (var table in tables) {
+            if (strings.contains(table)) {
+              return true;
+            }
+          }
+          return false;
+        })
         .map((strings) => query)
         .transform(_StartWith(query)));
   }
@@ -430,8 +434,8 @@ class StreamBatch {
   /// See [StreamDatabase.update]
   void update(String table, Map<String, dynamic> values,
       {String? where,
-        List<dynamic>? whereArgs,
-        ConflictAlgorithm? conflictAlgorithm}) {
+      List<dynamic>? whereArgs,
+      ConflictAlgorithm? conflictAlgorithm}) {
     _batch.update(table, values,
         where: where,
         whereArgs: whereArgs,
@@ -467,14 +471,14 @@ class StreamBatch {
   /// See [StreamDatabase.query];
   void query(String table,
       {bool? distinct,
-        List<String>? columns,
-        String? where,
-        List<dynamic>? whereArgs,
-        String? groupBy,
-        String? having,
-        String? orderBy,
-        int? limit,
-        int? offset}) {
+      List<String>? columns,
+      String? where,
+      List<dynamic>? whereArgs,
+      String? groupBy,
+      String? having,
+      String? orderBy,
+      int? limit,
+      int? offset}) {
     _batch.query(table,
         columns: columns,
         where: where,
@@ -491,3 +495,4 @@ class StreamBatch {
     _batch.rawQuery(sql, arguments);
   }
 }
+*/

@@ -1,6 +1,6 @@
 name: streamqflite
 description: reactive stream wrapper around sqflite inspired by sqlbrite
-version: 2.2.0
+version: 2.2.2
 author: Evan Tatarka <evan@tatarka.me>
 homepage: https://github.com/evant/streamqflite
 
