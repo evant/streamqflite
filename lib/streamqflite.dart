@@ -246,7 +246,7 @@ class QueryStream extends Stream<LazyQuery> {
       //var result = List<T>(rows.length);
       List<T> result = [];
       for (int i = 0; i < rows.length; i++) {
-        result[i] = mapper(rows[i]);
+        result.add(mapper(rows[i]));
       }
       return result;
     });
