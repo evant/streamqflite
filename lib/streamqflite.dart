@@ -21,14 +21,14 @@ abstract class StreamDatabaseExecutor {
   /// Execute an SQL query with no return value.
   /// No notifications will be sent to queries if [sql] affects the data of the
   /// table.
-  Future<void> execute(String sql, [List<dynamic> arguments]) =>
+  Future<void> execute(String sql, [List<dynamic>? arguments]) =>
       _db.execute(sql, arguments);
 
   /// Execute an SQL query with no return value.
   /// A notification to queries for [tables] will be sent after the statement is
   /// executed.
   Future<void> executeAndTrigger(Iterable<String> tables, String sql,
-      [List<dynamic> arguments]) async {
+      [List<dynamic>? arguments]) async {
     await _db.execute(sql, arguments);
     _sendTableTrigger(tables);
   }
@@ -39,7 +39,7 @@ abstract class StreamDatabaseExecutor {
   ///
   /// @return The inserted record id.
   Future<int> rawInsert(Iterable<String> tables, String sql,
-      [List<dynamic> arguments]) async {
+      [List<dynamic>? arguments]) async {
     var rowId = await _db.rawInsert(sql, arguments);
     if (rowId != -1) {
       _sendTableTrigger(tables);
@@ -52,9 +52,9 @@ abstract class StreamDatabaseExecutor {
   /// A notification to queries for [table] will be sent after the statement is
   /// executed.
   Future<int> insert(String table, Map<String, dynamic> values,
-      {String nullColumnHack, ConflictAlgorithm conflictAlgorithm}) async {
+      {String? nullColumnHack, ConflictAlgorithm? conflictAlgorithm}) async {
     var rowId =
-        await _db.insert(table, values, conflictAlgorithm: conflictAlgorithm);
+    await _db.insert(table, values, conflictAlgorithm: conflictAlgorithm);
     if (rowId != -1) {
       _sendTableTrigger([table]);
     }
@@ -65,7 +65,7 @@ abstract class StreamDatabaseExecutor {
   ///
   /// @return A list of rows that were found.
   Future<List<Map<String, dynamic>>> rawQuery(String sql,
-          [List<dynamic> arguments]) =>
+      [List<dynamic>? arguments]) =>
       _db.rawQuery(sql, arguments);
 
   /// Helper to query a table.
@@ -97,15 +97,15 @@ abstract class StreamDatabaseExecutor {
   /// @return The items found.
   ///
   Future<List<Map<String, dynamic>>> query(String table,
-      {bool distinct,
-      List<String> columns,
-      String where,
-      List<Object> whereArgs,
-      String groupBy,
-      String having,
-      String orderBy,
-      int limit,
-      int offset}) {
+      {bool? distinct,
+        List<String>? columns,
+        String? where,
+        List<Object>? whereArgs,
+        String? groupBy,
+        String? having,
+        String? orderBy,
+        int? limit,
+        int? offset}) {
     return _db.query(table,
         distinct: distinct,
         columns: columns,
@@ -124,7 +124,7 @@ abstract class StreamDatabaseExecutor {
   ///
   /// @return a list of rows that were found.
   Future<int> rawUpdate(Iterable<String> tables, String sql,
-      [List<Object> args]) async {
+      [List<Object>? args]) async {
     var rows = await _db.rawUpdate(sql, args);
     if (rows > 0) {
       _sendTableTrigger(tables);
@@ -149,9 +149,9 @@ abstract class StreamDatabaseExecutor {
   /// A notification to queries for [table] will be sent after the statement is
   /// executed.
   Future<int> update(String table, Map<String, Object> values,
-      {String where,
-      List<Object> whereArgs,
-      ConflictAlgorithm conflictAlgorithm}) async {
+      {String? where,
+        List<Object>? whereArgs,
+        ConflictAlgorithm? conflictAlgorithm}) async {
     var rows = await _db.update(table, values,
         where: where,
         whereArgs: whereArgs,
@@ -169,7 +169,7 @@ abstract class StreamDatabaseExecutor {
   ///
   /// @return The number of changes made.
   Future<int> rawDelete(Iterable<String> tables, String sql,
-      [List<Object> args]) async {
+      [List<Object>? args]) async {
     var rows = await _db.rawDelete(sql, args);
     if (rows > 0) {
       _sendTableTrigger(tables);
@@ -197,7 +197,7 @@ abstract class StreamDatabaseExecutor {
   /// otherwise. To remove all rows and get a count pass "1" as the
   /// whereClause.
   Future<int> delete(String table,
-      {String where, List<Object> whereArgs}) async {
+      {String? where, List<Object>? whereArgs}) async {
     var rows = await _db.delete(table, where: where, whereArgs: whereArgs);
     if (rows > 0) {
       _sendTableTrigger([table]);
@@ -221,8 +221,8 @@ class QueryStream extends Stream<LazyQuery> {
   QueryStream(Stream<LazyQuery> source) : _source = source;
 
   @override
-  StreamSubscription<LazyQuery> listen(void Function(LazyQuery event) onData,
-      {Function onError, void Function() onDone, bool cancelOnError}) {
+  StreamSubscription<LazyQuery> listen(void Function(LazyQuery event)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
     return _source.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
@@ -243,9 +243,10 @@ class QueryStream extends Stream<LazyQuery> {
 
   Stream<List<T>> mapToList<T>(T mapper(Map<String, dynamic> row)) {
     return _source.asyncMap((query) => query()).map((rows) {
-      var result = List<T>(rows.length);
+      //var result = List<T>(rows.length);
+      List<T> result = [];
       for (int i = 0; i < rows.length; i++) {
-        result[i] = mapper(rows[i]);
+        result.add(mapper(rows[i]));
       }
       return result;
     });
@@ -279,10 +280,10 @@ class StreamDatabase extends StreamDatabaseExecutor {
   /// Calls in action must only be done using the transaction object
   /// using the database will trigger a dead-lock.
   Future<T> transaction<T>(Future<T> action(StreamTransaction txn),
-      {bool exclusive}) async {
+      {bool? exclusive}) async {
     var notify = Set<String>();
     var result = await _db.transaction(
-        (t) => action(StreamTransaction(t, notify)),
+            (t) => action(StreamTransaction(t, notify)),
         exclusive: exclusive);
     _sendTableTrigger(notify);
     return result;
@@ -307,7 +308,7 @@ class StreamDatabase extends StreamDatabaseExecutor {
   ///
   /// @see [rawQuery]
   QueryStream createRawQuery(Iterable<String> tables, String sql,
-          [List<Object> arguments = const <Object>[]]) =>
+      [List<Object> arguments = const <Object>[]]) =>
       _createQuery(tables, () => _db.rawQuery(sql, arguments));
 
   /// Creates a [Stream] that will notify listeners with a [LazyQuery] for
@@ -318,18 +319,18 @@ class StreamDatabase extends StreamDatabaseExecutor {
   ///
   /// @see [query]
   QueryStream createQuery(String table,
-          {bool distinct,
-          List<String> columns,
-          String where,
-          List<Object> whereArgs,
-          String groupBy,
-          String having,
-          String orderBy,
-          int limit,
-          int offset}) =>
+      {bool? distinct,
+        List<String>? columns,
+        String? where,
+        List<Object>? whereArgs,
+        String? groupBy,
+        String? having,
+        String? orderBy,
+        int? limit,
+        int? offset}) =>
       _createQuery(
           [table],
-          () => _db.query(table,
+              () => _db.query(table,
               distinct: distinct,
               columns: columns,
               where: where,
@@ -343,13 +344,13 @@ class StreamDatabase extends StreamDatabaseExecutor {
   QueryStream _createQuery(Iterable<String> tables, LazyQuery query) {
     return QueryStream(triggers.stream
         .where((strings) {
-          for (var table in tables) {
-            if (strings.contains(table)) {
-              return true;
-            }
-          }
-          return false;
-        })
+      for (var table in tables) {
+        if (strings.contains(table)) {
+          return true;
+        }
+      }
+      return false;
+    })
         .map((strings) => query)
         .transform(_StartWith(query)));
   }
@@ -378,7 +379,7 @@ class _StartWith<T> extends StreamTransformerBase<T, T> {
 class StreamBatch {
   final StreamDatabaseExecutor _executor;
   final Set<String> _notify = Set();
-  Batch _batch;
+  late Batch _batch;
 
   StreamBatch(StreamDatabaseExecutor executor) : _executor = executor {
     _batch = executor._db.batch();
@@ -395,7 +396,7 @@ class StreamBatch {
   /// be a DatabaseException)
   ///
   Future<List<dynamic>> commit(
-      {bool exclusive, bool noResult, bool continueOnError}) async {
+      {bool? exclusive, bool? noResult, bool? continueOnError}) async {
     final result = await _batch.commit(
         exclusive: exclusive,
         noResult: noResult,
@@ -406,14 +407,14 @@ class StreamBatch {
 
   /// See [StreamDatabase.rawInsert]
   void rawInsert(Iterable<String> tables, String sql,
-      [List<dynamic> arguments]) {
+      [List<dynamic>? arguments]) {
     _batch.rawInsert(sql, arguments);
     _notify.addAll(tables);
   }
 
   /// See [StreamDatabase.insert]
   void insert(String table, Map<String, dynamic> values,
-      {String nullColumnHack, ConflictAlgorithm conflictAlgorithm}) {
+      {String? nullColumnHack, ConflictAlgorithm? conflictAlgorithm}) {
     _batch.insert(table, values,
         nullColumnHack: nullColumnHack, conflictAlgorithm: conflictAlgorithm);
     _notify.add(table);
@@ -421,16 +422,16 @@ class StreamBatch {
 
   /// See [StreamDatabase.rawUpdate]
   void rawUpdate(Iterable<String> tables, String sql,
-      [List<dynamic> arguments]) {
+      [List<dynamic>? arguments]) {
     _batch.rawUpdate(sql, arguments);
     _notify.addAll(tables);
   }
 
   /// See [StreamDatabase.update]
   void update(String table, Map<String, dynamic> values,
-      {String where,
-      List<dynamic> whereArgs,
-      ConflictAlgorithm conflictAlgorithm}) {
+      {String? where,
+        List<dynamic>? whereArgs,
+        ConflictAlgorithm? conflictAlgorithm}) {
     _batch.update(table, values,
         where: where,
         whereArgs: whereArgs,
@@ -440,40 +441,40 @@ class StreamBatch {
 
   /// See [StreamDatabase.rawDelete]
   void rawDelete(Iterable<String> tables, String sql,
-      [List<dynamic> arguments]) {
+      [List<dynamic>? arguments]) {
     _batch.rawDelete(sql, arguments);
     _notify.addAll(tables);
   }
 
   /// See [StreamDatabase.delete]
-  void delete(String table, {String where, List<dynamic> whereArgs}) {
+  void delete(String table, {String? where, List<dynamic>? whereArgs}) {
     _batch.delete(table, where: where, whereArgs: whereArgs);
     _notify.add(table);
   }
 
   /// See [StreamDatabase.execute];
-  void execute(String sql, [List<dynamic> arguments]) {
+  void execute(String sql, [List<dynamic>? arguments]) {
     _batch.execute(sql, arguments);
   }
 
   /// See [StreamDatabase.executeAndTrigger];
   void executeAndTrigger(Iterable<String> tables, String sql,
-      [List<dynamic> arguments]) {
+      [List<dynamic>? arguments]) {
     _batch.execute(sql, arguments);
     _notify.addAll(tables);
   }
 
   /// See [StreamDatabase.query];
   void query(String table,
-      {bool distinct,
-      List<String> columns,
-      String where,
-      List<dynamic> whereArgs,
-      String groupBy,
-      String having,
-      String orderBy,
-      int limit,
-      int offset}) {
+      {bool? distinct,
+        List<String>? columns,
+        String? where,
+        List<dynamic>? whereArgs,
+        String? groupBy,
+        String? having,
+        String? orderBy,
+        int? limit,
+        int? offset}) {
     _batch.query(table,
         columns: columns,
         where: where,
@@ -486,7 +487,7 @@ class StreamBatch {
   }
 
   /// See [StreamDatabase.query];
-  void rawQuery(String sql, [List<dynamic> arguments]) {
+  void rawQuery(String sql, [List<dynamic>? arguments]) {
     _batch.rawQuery(sql, arguments);
   }
 }

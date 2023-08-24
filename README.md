@@ -12,7 +12,7 @@ In your flutter project, add the dependency to your `pubspec.yaml`
 ```yaml
 dependencies:
   ...
-  streamqflite: ^1.0.0
+  streamqflite: ^2.2.3
 ```
 
 ## Usage
